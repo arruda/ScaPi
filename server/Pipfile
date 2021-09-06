@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 redis = "*"
 python-decouple = "*"
+logzero = "*"
 
 [requires]
 python_version = "3.6"
