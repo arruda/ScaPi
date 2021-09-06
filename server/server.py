@@ -4,6 +4,7 @@ Simple Redis server using a Pub/sub comunication, and JSON for the messages seri
 """
 import json
 import logging
+import pprint
 
 import logzero
 import redis
@@ -16,6 +17,7 @@ class ScapiServer():
         self.redis_db = redis.Redis(host=redis_address, port=redis_port)
         self.logging_level = logging_level
         self.logger = self._setup_logging()
+        self.setup_game()
 
     def _setup_logging(self):
         log_format = (
@@ -25,6 +27,17 @@ class ScapiServer():
         formatter = logzero.LogFormatter(fmt=log_format)
         return logzero.setup_logger(
             name=self.__class__.__name__, level=logging.getLevelName(self.logging_level), formatter=formatter)
+
+    def setup_game(self):
+        self.board = [
+            ['#', '#', '#', '#', '#', '#', '#'],
+            ['#', '.', '.', '.', '.', '.', '#'],
+            ['#', '.', '.', '.', '.', '.', '#'],
+            ['#', '.', '.', '.', '.', '.', '#'],
+            ['#', '.', '.', '.', '.', '.', '#'],
+            ['#', '.', '.', '.', '.', '.', '#'],
+            ['#', '#', '#', '#', '#', '#', '#'],
+        ]
 
     def process_msg(self, json_msg):
         msg_data = json.loads(json_msg)
@@ -36,9 +49,13 @@ class ScapiServer():
         for message in pubsub.listen():
             try:
                 self.process_msg(message['data'].decode('utf-8'))
+                self.show_board()
             except Exception as e:
                 self.logger.error(f'Error processing {message}:')
                 self.logger.exception(e)
+
+    def show_board(self):
+        pprint.pprint(self.board)
 
 
 if __name__ == '__main__':
@@ -46,4 +63,7 @@ if __name__ == '__main__':
         redis_address=REDIS_ADDRESS, redis_port=REDIS_PORT,
         logging_level=LOGGING_LEVEL
     )
-    scapi_server.run()
+    try:
+        scapi_server.run()
+    except KeyboardInterrupt:
+        pass
