@@ -1,4 +1,9 @@
+import os
+
 from decouple import config
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+BOARDS_DIR = os.path.join(PROJECT_ROOT, 'boards')
 
 REDIS_ADDRESS = config('REDIS_ADDRESS', default='localhost')
 REDIS_PORT = config('REDIS_PORT', default='6379')
