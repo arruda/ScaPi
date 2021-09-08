@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import random
+import time
 
 import logzero
 import redis
@@ -33,15 +34,16 @@ class ScapiServer():
         self.logging_level = logging_level
         self.logger = self._setup_logging()
 
-        self.setup_game(TEAM_NAMES, board_id=BOARD_ID)
         self.process_action_mapping = {
             'right': partial(self.process_action_right, value=1),
             'left': partial(self.process_action_right, value=-1),
             'up': partial(self.process_action_down, value=-1),
             'down': partial(self.process_action_down, value=1),
-            'drop': self.process_action_drop,
             'use': self.process_action_use,
+            'drop': self.process_action_drop,
         }
+
+        self.setup_game(TEAM_NAMES, board_id=BOARD_ID)
 
     def _setup_logging(self):
         log_format = (
@@ -51,6 +53,23 @@ class ScapiServer():
         formatter = logzero.LogFormatter(fmt=log_format)
         return logzero.setup_logger(
             name=self.__class__.__name__, level=logging.getLevelName(self.logging_level), formatter=formatter)
+
+    def load_board(self, board_id):
+        file_path = os.path.join(BOARDS_DIR, f'board_{board_id}')
+        board = []
+        with open(file_path, 'r') as f:
+            for line in f.readlines():
+                board.append(list(line.replace('\n', '')))
+        return board
+
+    def get_spawn_points(self):
+        points = []
+        for row, row_el in enumerate(self.board):
+            for col, col_el in enumerate(row_el):
+                if col_el == self.SPAWN_POINT:
+                    points.append([row, col])
+
+        return points
 
     def setup_teams(self, team_names, spawn_points):
         self.teams = {}
@@ -66,53 +85,81 @@ class ScapiServer():
                 'last_action': None,
                 'left_maze': False,
                 'exit_time': None,
-                'keys': 2
+                'users': {},
+                'keys': 0
             }
             self.update_team_on_board(team_id, spawn_coordinates, spawn_coordinates)
 
-    def load_board(self, board_id):
-        file_path = os.path.join(BOARDS_DIR, f'board_{board_id}')
-        board = []
-        with open(file_path, 'r') as f:
-            for line in f.readlines():
-                board.append(list(line.replace('\n', '')))
-        return board
+    def show_team_users(self):
+        print('\n' * 100)
+        print('Teams:')
+        for team, team_data in self.teams.items():
+            print(f'\t {team}')
+            for user in team_data['users'].keys():
+                print(f'\t\t {user}')
 
-    def get_spawn_points(self):
-        points = []
+    def process_registration_msg(self, json_msg):
+        msg_data = json.loads(json_msg)
+        team = msg_data['team']
+        user = msg_data['user']
+        self.teams[team]['users'][user] = []
+
+    def board_has_keys(self):
         for row, row_el in enumerate(self.board):
             for col, col_el in enumerate(row_el):
-                if col_el == '!':
-                    points.append([row, col])
+                if col_el == self.KEY:
+                    return True
+        return False
 
-        return points
+    def randomize_user_actions(self):
+        available_actions = list(self.process_action_mapping.keys())
+        if not self.board_has_keys():
+            available_actions.remove('drop')
+        for team, team_data in self.teams.items():
+            team_users = list(team_data['users'].keys())
+            team_users = random.sample(team_users, len(team_users))
+            num_users = len(team_users)
+            if num_users == 0:
+                continue
+            for i_action, action in enumerate(available_actions):
+                user_index = i_action % num_users
+                user = team_users[user_index]
+                team_data['users'][user].append(action)
+
+    def notify_team_users_actions(self):
+        for team, team_data in self.teams.items():
+            for user, actions in team_data['users'].items():
+                user_topic = f'{team}/{user}'
+                json_msg = json.dumps(actions)
+                self.redis_db.publish(user_topic, json_msg)
 
     def setup_game(self, team_names, board_id):
         self.board = self.load_board(board_id)
         spawn_points = self.get_spawn_points()
         self.setup_teams(team_names, spawn_points)
+        pubsub = self.redis_db.pubsub(ignore_subscribe_messages=True)
+        pubsub.subscribe('scapi-register')
+
+        setup_ready = False
+        while not setup_ready:
+            for i in range(100):
+                message = pubsub.get_message()
+                if message:
+                    try:
+                        self.process_registration_msg(message['data'].decode('utf-8'))
+                    except Exception as e:
+                        self.logger.warning(f'Error processing {message}:')
+                        self.logger.exception(e)
+                    finally:
+                        self.show_team_users()
+                time.sleep(0.1)
+            setup_ready = input('All teams ready? y/[n]').lower() == 'y'
+        self.randomize_user_actions()
+        self.notify_team_users_actions()
 
     def update_team_on_board(self, team_id, old_coord, new_coord):
         self.board[old_coord[0]][old_coord[1]] = '.'
         self.board[new_coord[0]][new_coord[1]] = str(team_id)
-
-    def show_updated_screen(self):
-        self.show_board()
-        self.show_last_actions()
-        self.show_scores()
-
-    def run(self):
-        self.show_updated_screen()
-        pubsub = self.redis_db.pubsub(ignore_subscribe_messages=True)
-        pubsub.subscribe('scapi')
-        for message in pubsub.listen():
-            try:
-                self.process_msg(message['data'].decode('utf-8'))
-            except Exception as e:
-                self.logger.error(f'Error processing {message}:')
-                self.logger.exception(e)
-            finally:
-                self.show_updated_screen()
 
     def get_open_option_if_valid_use_coordinate(self, coordinates):
         try:
@@ -212,22 +259,41 @@ class ScapiServer():
                 else:
                     self.exit_maze(team, use_option)
 
-    def process_action(self, team, user, action):
+    def process_action(self, team, user, action, msg_data):
         action_mapping = self.process_action_mapping.get(action)
         team_exit_maze = self.teams[team]['left_maze']
-        if action_mapping is None or team_exit_maze:
+        user_has_action = action in self.teams[team]['users'][user]
+        if action_mapping is None or team_exit_maze or not user_has_action:
             return False
         action_mapping(team)
+        self.teams[team]['last_action'] = msg_data
 
     def process_msg(self, json_msg):
         msg_data = json.loads(json_msg)
         team = msg_data['team']
         user = msg_data['user']
         action = msg_data['action']
-        self.process_action(team, user, action)
-        self.teams[team]['last_action'] = msg_data
+        self.process_action(team, user, action, msg_data)
 
         self.logger.debug(msg_data)
+
+    def run(self):
+        pubsub = self.redis_db.pubsub(ignore_subscribe_messages=True)
+        self.show_updated_screen()
+        pubsub.subscribe('scapi')
+        for message in pubsub.listen():
+            try:
+                self.process_msg(message['data'].decode('utf-8'))
+            except Exception as e:
+                self.logger.warning(f'Error processing {message}:')
+                self.logger.exception(e)
+            finally:
+                self.show_updated_screen()
+
+    def show_updated_screen(self):
+        self.show_board()
+        self.show_last_actions()
+        self.show_scores()
 
     def show_board(self):
         print('\n' * 100)
