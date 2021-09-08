@@ -14,7 +14,7 @@ DATABASE_URL = config('DATABASE_URL', default='sqlite:///scapi.db')
 
 LOGGING_LEVEL = config('LOGGING_LEVEL', default='DEBUG')
 TEAM_NAMES = config('TEAM_NAMES', cast=lambda s: s.split('/'))
-STUDENT_CLASS = config('STUDENT_CLASS', default='A')
+STUDENT_CLASS = config('STUDENT_CLASS', default='TEST')
 CLASS_RESULTS_CSV = os.path.join(RESULTS_DIR, f'class_{STUDENT_CLASS}.csv')
 
 BOARD_ID = config('BOARD_ID', default=1)
