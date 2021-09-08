@@ -13,3 +13,6 @@ DATABASE_URL = config('DATABASE_URL', default='sqlite:///scapi.db')
 LOGGING_LEVEL = config('LOGGING_LEVEL', default='DEBUG')
 TEAM_NAMES = config('TEAM_NAMES', cast=lambda s: s.split('/'))
 BOARD_ID = config('BOARD_ID', default=1)
+
+ADMIN_PASS = config('ADMIN_PASS')
+GAMEOVER_TIME = config('GAMEOVER_TIME', default=120, cast=int)

@@ -19,7 +19,8 @@ from conf import (
     TEAM_NAMES,
     BOARD_ID,
     BOARDS_DIR,
-    LOGGING_LEVEL
+    LOGGING_LEVEL,
+    ADMIN_PASS
 )
 
 
@@ -29,10 +30,11 @@ class ScapiServer():
     LOCKED_DOOR = '#'
     SPAWN_POINT = '!'
 
-    def __init__(self, redis_address, redis_port, logging_level):
+    def __init__(self, redis_address, redis_port, admin_pass, logging_level):
         self.redis_db = redis.Redis(host=redis_address, port=redis_port)
         self.logging_level = logging_level
         self.logger = self._setup_logging()
+        self.admin_pass = admin_pass
 
         self.process_action_mapping = {
             'right': partial(self.process_action_right, value=1),
@@ -113,7 +115,7 @@ class ScapiServer():
 
     def randomize_user_actions(self):
         available_actions = list(self.process_action_mapping.keys())
-        if not self.board_has_keys():
+        if not self.has_keys:
             available_actions.remove('drop')
         for team, team_data in self.teams.items():
             team_users = list(team_data['users'].keys())
@@ -133,29 +135,47 @@ class ScapiServer():
                 json_msg = json.dumps(actions)
                 self.redis_db.publish(user_topic, json_msg)
 
+    def get_admin_msg_data_if_secure(self, json_msg):
+        msg_data = json.loads(json_msg)
+        msg_admin_pass = msg_data['admin']
+        if msg_admin_pass != ADMIN_PASS:
+            return False
+        return msg_data
+
+    def process_admin_msg_game_over(self, json_msg):
+        msg_data = self.get_admin_msg_data_if_secure(json_msg)
+        return msg_data and msg_data.get('gameover', False)
+
+    def process_admin_msg_game_ready(self, json_msg):
+        msg_data = self.get_admin_msg_data_if_secure(json_msg)
+        return msg_data and msg_data.get('ready', False)
+
     def setup_game(self, team_names, board_id):
         self.board = self.load_board(board_id)
+        self.has_keys = self.board_has_keys()
         spawn_points = self.get_spawn_points()
         self.setup_teams(team_names, spawn_points)
         pubsub = self.redis_db.pubsub(ignore_subscribe_messages=True)
-        pubsub.subscribe('scapi-register')
-
-        setup_ready = False
-        while not setup_ready:
-            for i in range(100):
-                message = pubsub.get_message()
-                if message:
-                    try:
-                        self.process_registration_msg(message['data'].decode('utf-8'))
-                    except Exception as e:
-                        self.logger.warning(f'Error processing {message}:')
-                        self.logger.exception(e)
-                    finally:
-                        self.show_team_users()
-                time.sleep(0.1)
-            setup_ready = input('All teams ready? y/[n]').lower() == 'y'
+        pubsub.subscribe('scapi-setup')
+        pubsub.subscribe('scapi-admin')
+        self.show_team_users()
+        for message in pubsub.listen():
+            try:
+                if message['channel'].decode('utf-8') == 'scapi-admin':
+                    setup_ready = self.process_admin_msg_game_ready(message['data'].decode('utf-8'))
+                    if setup_ready:
+                        break
+                else:
+                    self.process_registration_msg(message['data'].decode('utf-8'))
+            except Exception as e:
+                self.logger.warning(f'Error processing {message}:')
+                self.logger.exception(e)
+            finally:
+                self.show_team_users()
         self.randomize_user_actions()
         self.notify_team_users_actions()
+        pubsub.unsubscribe('scapi-setup')
+        pubsub.unsubscribe('scapi-admin')
 
     def update_team_on_board(self, team_id, old_coord, new_coord):
         self.board[old_coord[0]][old_coord[1]] = '.'
@@ -220,7 +240,11 @@ class ScapiServer():
         max_scoring_teams = 2
         score = (max_scoring_teams - self.teams_left_by_magic_dor) * 100
         if is_portal:
-            score = 30
+            if not self.has_keys:
+                number_of_teams_left = len([team for team, data in self.teams if data['left_maze']])
+                score = 10 + (number_of_teams_left * 10)
+            else:
+                score = 30
         else:
             self.teams_left_by_magic_dor += 1
         self.teams[team]['score'] = score
@@ -281,9 +305,15 @@ class ScapiServer():
         pubsub = self.redis_db.pubsub(ignore_subscribe_messages=True)
         self.show_updated_screen()
         pubsub.subscribe('scapi')
+        pubsub.subscribe('scapi-admin')
         for message in pubsub.listen():
             try:
-                self.process_msg(message['data'].decode('utf-8'))
+                if message['channel'].decode('utf-8') == 'scapi-admin':
+                    game_over = self.process_admin_msg_game_over(message['data'].decode('utf-8'))
+                    if game_over:
+                        break
+                else:
+                    self.process_msg(message['data'].decode('utf-8'))
             except Exception as e:
                 self.logger.warning(f'Error processing {message}:')
                 self.logger.exception(e)
@@ -301,7 +331,7 @@ class ScapiServer():
             print(''.join(row))
 
     def show_last_actions(self):
-        print(f'Last Team Action Received:')
+        print(f'Last Team Action:')
         for team, team_data in self.teams.items():
             last_action = team_data['last_action']
             if last_action:
@@ -328,6 +358,7 @@ class ScapiServer():
 if __name__ == '__main__':
     scapi_server = ScapiServer(
         redis_address=REDIS_ADDRESS, redis_port=REDIS_PORT,
+        admin_pass=ADMIN_PASS,
         logging_level=LOGGING_LEVEL
     )
     try:

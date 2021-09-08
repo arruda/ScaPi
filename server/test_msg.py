@@ -9,7 +9,7 @@ from conf import REDIS_ADDRESS, REDIS_PORT
 
 def send_message_reg(redis_db, msg_data):
     json_msg = json.dumps(msg_data)
-    redis_db.publish('scapi-register', json_msg)
+    redis_db.publish('scapi-setup', json_msg)
     time.sleep(1)
 
 
@@ -48,12 +48,12 @@ if __name__ == '__main__':
     # print(pubsub.get_message())
     # for msg in pubsub.get_message():
 
-    import pdb; pdb.set_trace()
-    send_message(redis_db, {'user': 'someone1', 'team': 'HotJava', 'action': 'down'})
-    send_message(redis_db, {'user': 'someone2', 'team': 'HotJava', 'action': 'down'})
-    send_message(redis_db, {'user': 'someone3', 'team': 'HotJava', 'action': 'down'})
-    send_message(redis_db, {'user': 'someone4', 'team': 'HotJava', 'action': 'down'})
-    send_message(redis_db, {'user': 'someone5', 'team': 'HotJava', 'action': 'down'})
+    # import pdb; pdb.set_trace()
+    # send_message(redis_db, {'user': 'someone1', 'team': 'HotJava', 'action': 'down'})
+    # send_message(redis_db, {'user': 'someone2', 'team': 'HotJava', 'action': 'down'})
+    # send_message(redis_db, {'user': 'someone3', 'team': 'HotJava', 'action': 'down'})
+    # send_message(redis_db, {'user': 'someone4', 'team': 'HotJava', 'action': 'down'})
+    # send_message(redis_db, {'user': 'someone5', 'team': 'HotJava', 'action': 'down'})
     # msg_data = {
     #     'user': 'someone1',
     #     'team': 'HotJava',
