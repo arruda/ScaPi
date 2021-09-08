@@ -118,3 +118,4 @@ dmypy.json
 
 # pycharm folder
 .idea/
+results/*

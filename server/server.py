@@ -2,13 +2,13 @@
 """
 Simple Redis server using a Pub/sub comunication, and JSON for the messages serialization.
 """
+import csv
 import datetime
 from functools import partial
 import json
 import logging
 import os
 import random
-import time
 
 import logzero
 import redis
@@ -20,7 +20,8 @@ from conf import (
     BOARD_ID,
     BOARDS_DIR,
     LOGGING_LEVEL,
-    ADMIN_PASS
+    ADMIN_PASS,
+    CLASS_RESULTS_CSV
 )
 
 
@@ -95,8 +96,9 @@ class ScapiServer():
     def show_team_users(self):
         print('\n' * 100)
         print('Teams:')
-        for team, team_data in self.teams.items():
-            print(f'\t {team}')
+        for team_id, dict_tuple in enumerate(self.teams.items(), 1):
+            team, team_data = dict_tuple
+            print(f'\t ({team_id}){team}')
             for user in team_data['users'].keys():
                 print(f'\t\t {user}')
 
@@ -319,6 +321,35 @@ class ScapiServer():
                 self.logger.exception(e)
             finally:
                 self.show_updated_screen()
+
+        self.game_over()
+
+    def save_results(self, file_override=''):
+        file_path = CLASS_RESULTS_CSV
+        if file_override != '':
+            file_path = file_override
+        add_collums = not os.path.isfile(file_path)
+        sorted_team_names = sorted(self.teams.keys())
+        cols = ['Date'] + sorted_team_names
+
+        date_now = datetime.datetime.now()
+        with open(file_path, 'a') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            if add_collums:
+                col_row = csv_file
+                csv_writer.writerow(cols)
+
+            row = [date_now]
+            for team_name in sorted_team_names:
+                score = self.teams[team_name]['score']
+                row.append(score)
+            csv_writer.writerow(row)
+
+    def game_over(self):
+        self.show_updated_screen()
+        print('Game Over')
+        file_override = input(f'Saving results in {CLASS_RESULTS_CSV}, if incorrect input the proper file:')
+        self.save_results(file_override)
 
     def show_updated_screen(self):
         self.show_board()
