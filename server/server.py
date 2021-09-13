@@ -243,13 +243,20 @@ class ScapiServer():
         score = (max_scoring_teams - self.teams_left_by_magic_dor) * 100
         if is_portal:
             if not self.has_keys:
-                number_of_teams_left = len([team for team, data in self.teams if data['left_maze']])
+                number_of_teams_left = len([team for team, data in self.teams.items() if data['left_maze']])
                 score = 10 + (number_of_teams_left * 10)
             else:
                 score = 30
         else:
             self.teams_left_by_magic_dor += 1
         self.teams[team]['score'] = score
+
+    def send_gameover_msg_to_team(self, team):
+        team_data = self.teams[team]
+        for user in team_data['users'].keys():
+            user_topic = f'{team}/{user}'
+            json_msg = json.dumps({'game-over': True})
+            self.redis_db.publish(user_topic, json_msg)
 
     def exit_maze(self, team, use_option):
         exit_maze = False
@@ -266,6 +273,7 @@ class ScapiServer():
             self.teams[team]['left_maze'] = True
             coordinates = self.teams[team]['coordinates']
             self.board[coordinates[0]][coordinates[1]] = '.'
+            self.send_gameover_msg_to_team(team)
 
     def process_action_use(self, team):
         old_coordinates = self.teams[team]['coordinates']
@@ -336,7 +344,6 @@ class ScapiServer():
         with open(file_path, 'a') as csv_file:
             csv_writer = csv.writer(csv_file)
             if add_collums:
-                col_row = csv_file
                 csv_writer.writerow(cols)
 
             row = [date_now]
@@ -346,6 +353,8 @@ class ScapiServer():
             csv_writer.writerow(row)
 
     def game_over(self):
+        for team in self.teams.keys():
+            self.send_gameover_msg_to_team(team)
         self.show_updated_screen()
         print('Game Over')
         file_override = input(f'Saving results in {CLASS_RESULTS_CSV}, if incorrect input the proper file:')
