@@ -34,8 +34,11 @@ Each board design is a simple text file, with the following representation of ch
 * `!` represents a player starting position.
 * `@` represents an exit from the maze.
 * `#` represents a magical door exit.
+* `K` represents a Key for the magical door.
 
 At least five `!` should be present, at least one `@` should be present, and no `.` should be set in the edges of the maze (the maze needs to be encircled by walls).
+
+If using a magical door (`#`) you should at least add two keys (`K`), since two keys is the required count for opening a magical door. Avoid adding too many keys, otherwise they may loose their relative value to the players (they are supposed to be scarce resources that the players must compete to get).
 
 
 ## Setting Up the Code for Local Development
