@@ -26,7 +26,8 @@ Look through the GitHub issues for features. Anything tagged with "enhancement"
 and "help wanted" is open to whoever wants to implement it.
 
 ### New Boards Designs
-New boards designs should be added to the `server/boards` directory, with a unique name as in `board_{index}` (eg: board_1, board_2).
+New boards designs should be added to the `server/boards` directory, with a unique name as in `board_{index}` (eg: board_10, board_20). The first digit of the index is to help indicate the dificulty of the board, and  should be either `1` or `2`. Use `1` if the board don't have any magic doors or keys; use `2` if it has magic doors and keys. The following digits should be set to the following digit based on the available boards. Eg: if you are creating a board with no magic doors and no keys, and the is already a `board_11`, `board_12` and `board_13` in the boards directory, then you should name your board as `board_14`.
+
 New board designs should be as balanced as possible for any of the five teams, and they should not be too complex, in order to keep a game round fast (around 5 minutes).
 Each board design is a simple text file, with the following representation of characters:
 * `|` represents a wall.
@@ -40,6 +41,7 @@ At least five `!` should be present, at least one `@` should be present, and no 
 
 If using a magical door (`#`) you should at least add two keys (`K`), since two keys is the required count for opening a magical door. Avoid adding too many keys, otherwise they may loose their relative value to the players (they are supposed to be scarce resources that the players must compete to get).
 
+Finally, all boards design files should have an empty line at the end of the file.
 
 ## Setting Up the Code for Local Development
 
