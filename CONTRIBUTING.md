@@ -27,7 +27,7 @@ and "help wanted" is open to whoever wants to implement it.
 
 ### New Boards Designs
 New boards designs should be added to the `server/boards` directory, with a unique name as in `board_{index}` (eg: board_1, board_2).
-New board designs should be as balanced as possible for any of the five teams, and they should not be to complex, in order to keep a game round fast (around 5 minutes).
+New board designs should be as balanced as possible for any of the five teams, and they should not be too complex, in order to keep a game round fast (around 5 minutes).
 Each board design is a simple text file, with the following representation of characters:
 * `|` represents a wall.
 * `.` represents a movable path.
