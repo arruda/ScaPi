@@ -15,7 +15,6 @@ class Editor:
         return self.window
 
     def create_main_menu(self):
-        # sg.theme('DarkAmber')
         layout = [[sg.Text('Main Menu')],
                   [sg.Text('Available Options:')],
                   [sg.Button('Create New')]]
@@ -43,14 +42,37 @@ class Editor:
         self.create_window('Board Options', layout)
 
     def create_board_edit_window(self, width, height):
-        board_buttons = [sg.Button('.'), sg.Button('.')]
-        menu = [sg.Button('|'), sg.Button('#')]
-        layout = [[sg.Text('Edit Board')],
-                  [
-                      board_buttons,
-                      menu
-                  ],
-                  [sg.Button('Save')]]
+        board_frame = sg.Frame(
+            layout=[
+                [sg.Button('.'), sg.Button('|')],
+                [sg.Button('.'), sg.Button('|')],
+                [sg.Button('.'), sg.Button('|')],
+            ],
+            title='Board', title_color='red', relief=sg.RELIEF_SUNKEN,
+            tooltip='Use these to set flags'
+        )
+
+        menu_frame = sg.Frame(
+            layout=[
+                [sg.Text('Walkable Path:'), sg.Button('.', size=(1, 1))],
+                [sg.Text('Wall:'), sg.Button('|', size=(1, 1))],
+                [sg.Text('Exit:'), sg.Button('@', size=(1, 1))],
+                [sg.Text('Key:'), sg.Button('K', size=(1, 1))],
+                [sg.Text('Magic Door:'), sg.Button('#', size=(1, 1))],
+                [sg.Text('Spawn Point:'), sg.Button('!', size=(1, 1))],
+                [sg.Button('Save')]
+            ],
+            title='Menu', title_color='white', relief=sg.RELIEF_SUNKEN,
+            tooltip='Use these to set flags',
+            element_justification='right',
+        )
+        layout = [
+            [sg.Text('Edit Board')],
+            [
+                board_frame,
+                menu_frame
+            ],
+        ]
         self.create_window('Edit Board', layout)
 
     def run(self):
