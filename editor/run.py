@@ -3,13 +3,11 @@ import PySimpleGUI as sg
 
 
 class Editor:
-    # Create the Window
     def __init__(self):
         self.create_window()
 
     def create_window(self):
-        sg.theme('DarkAmber')  # Add a little color to your windows
-        # All the stuff inside your window. This is the PSG magic code compactor...
+        sg.theme('DarkAmber')
         layout = [[sg.Text('Some text on Row 1')],
                   [sg.Text('Enter something on Row 2'), sg.InputText()],
                   [sg.OK(), sg.Cancel()]]
