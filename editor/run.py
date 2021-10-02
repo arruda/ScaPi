@@ -6,7 +6,7 @@ class Editor:
     DEFAULT_SIZE = (640, 480)
 
     def __init__(self):
-        sg.theme('DarkAmber')
+        sg.theme('Dark Blue 3')
         self.title = 'ScaPi Editor'
         self.create_main_menu()
 
@@ -36,8 +36,8 @@ class Editor:
 
     def create_board_options_window(self):
         layout = [[sg.Text('Main Menu')],
-                  [sg.Text('Width:'), sg.InputText()],
-                  [sg.Text('Height:'), sg.InputText()],
+                  [sg.Text('Width:'), sg.InputText(default_text='10')],
+                  [sg.Text('Height:'), sg.InputText(default_text='10')],
                   [sg.Button('Create')]]
 
         self.create_window('Board Options', layout)
