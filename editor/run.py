@@ -29,7 +29,10 @@ class Editor:
 
         if event == 'Create':
             self.window.close()
-            self.create_board_edit_window()
+            width = int(values[0])
+            height = int(values[1])
+
+            self.create_board_edit_window(width, height)
 
     def create_board_options_window(self):
         layout = [[sg.Text('Main Menu')],
@@ -39,8 +42,14 @@ class Editor:
 
         self.create_window('Board Options', layout)
 
-    def create_board_edit_window(self):
+    def create_board_edit_window(self, width, height):
+        board_buttons = [sg.Button('.'), sg.Button('.')]
+        menu = [sg.Button('|'), sg.Button('#')]
         layout = [[sg.Text('Edit Board')],
+                  [
+                      board_buttons,
+                      menu
+                  ],
                   [sg.Button('Save')]]
         self.create_window('Edit Board', layout)
 
@@ -53,8 +62,8 @@ class Editor:
                 if event in (sg.WIN_CLOSED, 'Cancel'):
                     break
                 self.process_event(event, values)
-        except Exception:
-            pass
+        # except Exception:
+        #     pass
         finally:
             self.window.close()
 
