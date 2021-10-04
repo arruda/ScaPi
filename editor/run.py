@@ -46,24 +46,15 @@ class Editor:
         for i in range(width):
             row = []
             for j in range(height):
-                row.append(sg.Button('.', size=(1, 1)))
+                button_key = (i, j)
+                row.append(sg.Button('.', size=(1, 1), key=button_key))
             layout.append(row)
 
-        # layout = [
-        #     [sg.Button('.'), sg.Button('|')],
-        #     [sg.Button('.'), sg.Button('|')],
-        #     [sg.Button('.'), sg.Button('|')],
-        # ]
         return layout
 
     def create_board_edit_window(self, width, height):
         layout = self.create_board_layout(width, height)
         board_frame = sg.Frame(
-            # layout=[
-            #     [sg.Button('.'), sg.Button('|')],
-            #     [sg.Button('.'), sg.Button('|')],
-            #     [sg.Button('.'), sg.Button('|')],
-            # ],
             layout=layout,
             title='Board', title_color='red', relief=sg.RELIEF_SUNKEN,
             tooltip='Use these to set flags',
