@@ -7,8 +7,12 @@ class Editor:
 
     def __init__(self):
         sg.theme('Dark Blue 3')
+        self.default_button_color = sg.LOOK_AND_FEEL_TABLE[sg.theme()]['BUTTON']
+        # TODO: change disable to active
+        self.disable_button_color = ('#0000FF', '#FF0000')
         self.title = 'ScaPi Editor'
         self.create_main_menu()
+        self.active_tool = None
 
     def create_window(self, sub_title, layout, size=DEFAULT_SIZE):
         self.window = sg.Window(f'{self.title} - {sub_title}', layout, size=size)
@@ -21,6 +25,18 @@ class Editor:
         self.create_window('Main Menu', layout)
         # self.window = sg.Window(f'{self.title} - Main Menu', layout)
 
+    def update_active_button_color(self, disable=False):
+        color = self.disable_button_color if disable else self.default_button_color
+        btn = self.window[self.active_tool]
+        btn.Update(button_color=color)
+
+    def update_active_tool(self, event):
+        if self.active_tool is not None:
+            self.update_active_button_color(disable=False)
+
+        self.active_tool = event
+        self.update_active_button_color(disable=True)
+
     def process_event(self, event, values):
         if event == 'Create New':
             self.window.close()
@@ -32,6 +48,9 @@ class Editor:
             height = int(values[1])
 
             self.create_board_edit_window(width, height)
+
+        if event in ['.', '#', '|', '@', 'K', '!']:
+            self.update_active_tool(event)
 
     def create_board_options_window(self):
         layout = [[sg.Text('Main Menu')],
@@ -46,24 +65,15 @@ class Editor:
         for i in range(width):
             row = []
             for j in range(height):
-                row.append(sg.Button('.', size=(1, 1)))
+                button_key = (i, j)
+                row.append(sg.Button('.', size=(1, 1), key=button_key))
             layout.append(row)
 
-        # layout = [
-        #     [sg.Button('.'), sg.Button('|')],
-        #     [sg.Button('.'), sg.Button('|')],
-        #     [sg.Button('.'), sg.Button('|')],
-        # ]
         return layout
 
     def create_board_edit_window(self, width, height):
         layout = self.create_board_layout(width, height)
         board_frame = sg.Frame(
-            # layout=[
-            #     [sg.Button('.'), sg.Button('|')],
-            #     [sg.Button('.'), sg.Button('|')],
-            #     [sg.Button('.'), sg.Button('|')],
-            # ],
             layout=layout,
             title='Board', title_color='red', relief=sg.RELIEF_SUNKEN,
             tooltip='Use these to set flags',
