@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import random
+import time
 
 import logzero
 import redis
@@ -135,6 +136,10 @@ class ScapiServer():
             for user, actions in team_data['users'].items():
                 user_topic = f'{team}/{user}'
                 json_msg = json.dumps(actions)
+                self.redis_db.publish(user_topic, json_msg)
+                time.sleep(0.1)
+                self.redis_db.publish(user_topic, json_msg)
+                time.sleep(0.1)
                 self.redis_db.publish(user_topic, json_msg)
 
     def get_admin_msg_data_if_secure(self, json_msg):
