@@ -68,7 +68,10 @@ class Editor:
             row = []
             for j in range(height):
                 button_key = (i, j)
-                row.append(sg.Button('.', size=(1, 1), key=button_key))
+                if i in (0, width - 1) or j in (0, height - 1):
+                    row.append(sg.Button('|', size=(1, 1), key=button_key))
+                else:
+                    row.append(sg.Button('.', size=(1, 1), key=button_key))
             layout.append(row)
 
         return layout
