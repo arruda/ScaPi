@@ -94,7 +94,8 @@ class ScapiClient():
 
     def process_game_over_msg(self, msg_json):
         msg_data = json.loads(msg_json)
-        return msg_data.get('game-over', False)
+        if isinstance(msg_data, dict):
+            return msg_data.get('game-over', False)
 
     def start_round(self):
         input_text = 'Input the number of the desired action from the list bellow, and then press enter: \n'
