@@ -51,6 +51,9 @@ class Editor:
         if event in ['.', '#', '|', '@', 'K', '!']:
             self.update_active_tool(event)
 
+        if isinstance(event, tuple):
+            self.write_on_board(event)
+
     def create_board_options_window(self):
         layout = [[sg.Text('Main Menu')],
                   [sg.Text('Width:'), sg.InputText(default_text='10')],
@@ -115,6 +118,11 @@ class Editor:
         #     pass
         finally:
             self.window.close()
+
+    def write_on_board(self, event):
+        if self.active_tool:
+            btn = self.window[event]
+            btn.Update(text=self.active_tool)
 
 
 if __name__ == '__main__':
