@@ -8,8 +8,7 @@ class Editor:
     def __init__(self):
         sg.theme('Dark Blue 3')
         self.default_button_color = sg.LOOK_AND_FEEL_TABLE[sg.theme()]['BUTTON']
-        # TODO: change disable to active
-        self.disable_button_color = ('#0000FF', '#FF0000')
+        self.active_button_color = ('#0000FF', '#FF0000')  # (font color, background color)
         self.title = 'ScaPi Editor'
         self.create_main_menu()
         self.active_tool = None
@@ -25,17 +24,17 @@ class Editor:
         self.create_window('Main Menu', layout)
         # self.window = sg.Window(f'{self.title} - Main Menu', layout)
 
-    def update_active_button_color(self, disable=False):
-        color = self.disable_button_color if disable else self.default_button_color
+    def update_active_button_color(self, active=False):
+        color = self.active_button_color if active else self.default_button_color
         btn = self.window[self.active_tool]
         btn.Update(button_color=color)
 
     def update_active_tool(self, event):
         if self.active_tool is not None:
-            self.update_active_button_color(disable=False)
+            self.update_active_button_color(active=False)
 
         self.active_tool = event
-        self.update_active_button_color(disable=True)
+        self.update_active_button_color(active=True)
 
     def process_event(self, event, values):
         if event == 'Create New':
