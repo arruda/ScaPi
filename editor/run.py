@@ -1,5 +1,12 @@
 #!/usr/bin/env python
+import os
+
 import PySimpleGUI as sg
+
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SERVER_PROJECT_ROOT = os.path.join(PROJECT_ROOT, 'server')
+BOARDS_DIR = os.path.join(SERVER_PROJECT_ROOT, 'boards')
 
 
 class Editor:
@@ -12,6 +19,7 @@ class Editor:
         self.title = 'ScaPi Editor'
         self.create_main_menu()
         self.active_tool = None
+        self.default_board_id = 'board_00'
 
     def create_window(self, sub_title, layout, size=DEFAULT_SIZE):
         self.window = sg.Window(f'{self.title} - {sub_title}', layout, size=size)
@@ -22,7 +30,6 @@ class Editor:
                   [sg.Text('Available Options:')],
                   [sg.Button('Create New')]]
         self.create_window('Main Menu', layout)
-        # self.window = sg.Window(f'{self.title} - Main Menu', layout)
 
     def update_active_button_color(self, active=False):
         color = self.active_button_color if active else self.default_button_color
@@ -35,24 +42,6 @@ class Editor:
 
         self.active_tool = event
         self.update_active_button_color(active=True)
-
-    def process_event(self, event, values):
-        if event == 'Create New':
-            self.window.close()
-            self.create_board_options_window()
-
-        if event == 'Create':
-            self.window.close()
-            width = int(values[0])
-            height = int(values[1])
-
-            self.create_board_edit_window(width, height)
-
-        if event in ['.', '#', '|', '@', 'K', '!']:
-            self.update_active_tool(event)
-
-        if isinstance(event, tuple):
-            self.write_on_board(event)
 
     def create_board_options_window(self):
         layout = [[sg.Text('Main Menu')],
@@ -107,6 +96,51 @@ class Editor:
             ],
         ]
         self.create_window('Edit Board', layout)
+
+    def save_board_as_file(self, file_name):
+        file_path = os.path.join(BOARDS_DIR, file_name)
+        with open(file_path, 'w') as f:
+            pass
+            #save lines in file for each line
+
+    def save_board_window(self):
+        layout = [
+            [sg.Text('File Name:')],
+            [
+                sg.Text(BOARDS_DIR + '/'),
+                sg.InputText(default_text=self.default_board_id),
+            ],
+            [sg.Button('Save File')]
+        ]
+
+        self.create_window('Save Board', layout)
+
+    def process_event(self, event, values):
+        if event == 'Create New':
+            self.window.close()
+            self.create_board_options_window()
+
+        if event == 'Create':
+            self.window.close()
+            width = int(values[0])
+            height = int(values[1])
+
+            self.create_board_edit_window(width, height)
+
+        if event in ['.', '#', '|', '@', 'K', '!']:
+            self.update_active_tool(event)
+
+        if event == 'Save':
+            self.window.close()
+            self.save_board_window()
+
+        if event == 'Save File':
+            self.window.close()
+            board_id = values[0]
+            self.save_board_as_file(board_id)
+
+        if isinstance(event, tuple):
+            self.write_on_board(event)
 
     def run(self):
         # Event Loop to process "events"
