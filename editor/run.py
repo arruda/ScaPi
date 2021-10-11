@@ -3,7 +3,6 @@ import os
 
 import PySimpleGUI as sg
 
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER_PROJECT_ROOT = os.path.join(PROJECT_ROOT, 'server')
 BOARDS_DIR = os.path.join(SERVER_PROJECT_ROOT, 'boards')
@@ -17,9 +16,11 @@ class Editor:
         self.default_button_color = sg.LOOK_AND_FEEL_TABLE[sg.theme()]['BUTTON']
         self.active_button_color = ('#0000FF', '#FF0000')  # (font color, background color)
         self.title = 'ScaPi Editor'
-        self.create_main_menu()
-        self.active_tool = None
         self.default_board_id = 'board_00'
+        self.window = None
+        self.active_tool = None
+        self.board_content = None
+        self.create_main_menu()
 
     def create_window(self, sub_title, layout, size=DEFAULT_SIZE):
         self.window = sg.Window(f'{self.title} - {sub_title}', layout, size=size)
@@ -53,22 +54,25 @@ class Editor:
 
     def create_board_layout(self, width, height):
         layout = []
-        for i in range(width):
+        self.board_content = [['.'] * width for _ in range(height)]
+        for i in range(height):
             row = []
-            for j in range(height):
+            for j in range(width):
                 button_key = (i, j)
-                if i in (0, width - 1) or j in (0, height - 1):
-                    row.append(sg.Button('|', size=(1, 1), key=button_key))
+                if j in (0, width - 1) or i in (0, height - 1):
+                    button_text = '|'
                 else:
-                    row.append(sg.Button('.', size=(1, 1), key=button_key))
+                    button_text = '.'
+                row.append(sg.Button(button_text, size=(1, 1), key=button_key))
+                self.board_content[i][j] = button_text
             layout.append(row)
 
         return layout
 
     def create_board_edit_window(self, width, height):
-        layout = self.create_board_layout(width, height)
+        board_layout = self.create_board_layout(width, height)
         board_frame = sg.Frame(
-            layout=layout,
+            layout=board_layout,
             title='Board', title_color='red', relief=sg.RELIEF_SUNKEN,
             tooltip='Use these to set flags',
             background_color='white',
@@ -100,8 +104,8 @@ class Editor:
     def save_board_as_file(self, file_name):
         file_path = os.path.join(BOARDS_DIR, file_name)
         with open(file_path, 'w') as f:
-            pass
-            #save lines in file for each line
+            for row in self.board_content:
+                f.write("".join(row) + '\n')
 
     def save_board_window(self):
         layout = [
@@ -157,6 +161,8 @@ class Editor:
             self.window.close()
 
     def write_on_board(self, event):
+        i, j = event
+        self.board_content[i][j] = self.active_tool
         if self.active_tool:
             btn = self.window[event]
             btn.Update(text=self.active_tool)
