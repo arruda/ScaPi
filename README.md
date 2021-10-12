@@ -17,5 +17,8 @@ The ScaPi Server is ran by the Lab tutor (admin) presents the board and the game
 # ScaPi Client
 The ScaPi Client is executed by the students (the users) and it presents the means for interacting with the game. More information can be seen in it's [README](/client/README.md) file.
 
+# ScaPi Editor
+The ScaPi Editor is an app that provides simple GUI for creating new boards (used on the ScaPi Server). More information can be seen in it's [README](/editor/README.md) file.
+
 # License
 This project is distributed under the MIT license. See `LICENSE` file for more details.
