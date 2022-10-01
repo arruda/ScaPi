@@ -2,36 +2,56 @@ import os.path
 
 import PySimpleGUI as sg
 
-from conf import PROJECT_ROOT
+from conf import PROJECT_ROOT, WIDTH, HEIGHT, IMG_FOLDER, SPRITE_DICT, FONT_HEADER
 
 
 class ClientUIMaker:
-    DEFAULT_SIZE = (640, 480)
+    DEFAULT_SIZE = (WIDTH, HEIGHT)
 
-    def __init__(self):
+    def __init__(self, board):
         sg.theme('DarkAmber')
+        self.board = board
         self.default_button_color = sg.LOOK_AND_FEEL_TABLE[sg.theme()]['BUTTON']
         self.active_button_color = ('#0000FF', '#FF0000')  # (font color, background color)
         self.title = 'ScaPi Game'
-        self.default_board_id = 'board_00'
         self.window = None
-        self.create_main_menu()
+        self.board_width = len(board[0])
+        self.board_height = len(board)
+        self.create_main_screen()
 
     def create_window(self, sub_title, layout, size=DEFAULT_SIZE):
         self.window = sg.Window(f'{self.title} - {sub_title}', layout, size=size)
         return self.window
 
-    def create_main_menu(self):
+    def create_main_menu_testing(self):
         self.index_img = 1
         self.image_current_images = ['img_01.png' for i in range(3)]
-        img_path = os.path.join(PROJECT_ROOT, 'assets', 'img_01.png')
-        print(img_path)
+        img_path = os.path.join(IMG_FOLDER, 'img_01.png')
         layout = [
             [sg.Text('Loading Images')],
-            [sg.Image(img_path, key='img_1'), sg.Image(img_path, key='img_2'), sg.Image(img_path, key='img_3')],
+            [sg.Image(img_path, key='img_1', pad=0), sg.Image(img_path, key='img_2', pad=0),
+             sg.Image(img_path, key='img_3', pad=0)],
+            [sg.Image(img_path, key='img_1', pad=0), sg.Image(img_path, key='img_2', pad=0),
+             sg.Image(img_path, key='img_3', pad=0)],
+            [sg.Image(img_path, key='img_1', pad=0), sg.Image(img_path, key='img_2', pad=0),
+             sg.Image(img_path, key='img_3', pad=0)],
             [sg.Button('Change image')]
         ]
         self.create_window('Testing Show images', layout)
+
+    def create_main_screen(self):
+        layout = [[sg.Text('ScaPi Game', font=FONT_HEADER)]]
+
+        for i in range(self.board_height):
+            current_row = []
+            for j in range(self.board_width):
+                tile = self.board[i][j]
+                img_name = SPRITE_DICT[tile]
+                img_path = os.path.join(IMG_FOLDER, img_name)
+                img = sg.Image(img_path, key=(i, j), pad=0)
+                current_row.append(img)
+            layout.append(current_row)
+        self.create_window('Playing Board', layout)
 
     def process_event(self, event, values):
         if event == 'Change image':
@@ -88,5 +108,17 @@ class ClientUIMaker:
 
 
 if __name__ == '__main__':
-    client_ui = ClientUIMaker()
+    board_example = [
+        ['|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '@', '|'],
+        ['|', '.', '.', '.', '.', '.', '|', '.', '.', '.', '.', '.', '|'],
+        ['|', '.', '.', '.', '|', '.', '.', '.', '|', '.', '|', '.', '|'],
+        ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '.', '.', '.', '1', '2', '3', '4', '5', '.', '.', '.', '|'],
+        ['|', '|', '.', '.', '.', '.', '|', '.', '.', '.', '.', '|', '|'],
+        ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '.', '|', 'K', '.', '.', '|', '.', '.', '.', '.', '.', '|'],
+        ['#', '.', '.', '.', '|', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|']
+    ]
+    client_ui = ClientUIMaker(board_example)
     client_ui.run()
