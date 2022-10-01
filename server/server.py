@@ -301,10 +301,13 @@ class ScapiServer():
         self.teams[team]['score'] = score
 
     def send_gameover_msg_to_team(self, team):
+        json_msg = json.dumps({
+            'type': 'game-over',
+            'game-over': True
+        })
         team_data = self.teams[team]
         for user in team_data['users'].keys():
             user_topic = f'{team}/{user}'
-            json_msg = json.dumps({'game-over': True})
             self.redis_db.publish(user_topic, json_msg)
 
     def exit_maze(self, team, use_option):
@@ -322,7 +325,6 @@ class ScapiServer():
             self.teams[team]['left_maze'] = True
             coordinates = self.teams[team]['coordinates']
             self.update_nonstatic_element_on_board(None, coordinates, None)
-            # self.board[coordinates[0]][coordinates[1]] = '.'
             self.send_gameover_msg_to_team(team)
 
     def process_action_use(self, team):
