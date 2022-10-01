@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import json
-import time
-
 import redis
 
 from conf import REDIS_ADDRESS, REDIS_PORT, USER, TEAM_NAME, GREEN
@@ -26,19 +24,18 @@ BOARD_EXAMPLE = [
 ]
 
 
-
 def send_game_starting_msg(redis_db):
     event_msg = {
         'type': 'game_starting',
         'board': BOARD_EXAMPLE,
         'actions': ['right', 'left', 'up', 'down', 'use'],
-        'teams':{
+        'teams': {
             TEAM_NAME: {
                 'id': 1,
                 'name': TEAM_NAME,
                 # ...
             },
-            'OtherTeam':{
+            'OtherTeam': {
                 'id': 2,
                 'name': 'OtherTeam',
                 # ...
@@ -58,7 +55,6 @@ def send_board_change_msg(redis_db):
         }
     }
     send_message_redis(redis_db, event_msg)
-
 
 
 if __name__ == '__main__':
