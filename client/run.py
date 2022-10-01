@@ -81,7 +81,8 @@ class ScapiClient():
 
     def process_receive_user_action_msg(self, json_msg):
         msg_data = json.loads(json_msg)
-        self.user_actions = sorted(msg_data)
+        actions = msg_data['actions']
+        self.user_actions = sorted(actions)
 
     def send_action_msg(self, action):
         msg_data = {

@@ -222,7 +222,7 @@ class ScapiServer():
             old_coord_val = [old_coord[0], old_coord[1], ground_element_id]
             self.board[old_coord[0]][old_coord[1]] = ground_element_id
         if element_id is not None and new_coord is not None:
-            new_coord_val = [new_coord[0], new_coord[1], element_id]
+            new_coord_val = [new_coord[0], new_coord[1], str(element_id)]
             self.board[new_coord[0]][new_coord[1]] = str(element_id)
 
         self.broadcast_board_two_coords_change(old_coord_val, new_coord_val)
@@ -274,7 +274,6 @@ class ScapiServer():
         for choice in choices_rand_sorted:
             drop_coordinates = drop_choices[choice]
             if self.is_valid_board_move_coordinate(drop_coordinates):
-                # self.board[drop_coordinates[0]][drop_coordinates[1]] = self.KEY
                 self.update_nonstatic_element_on_board(self.KEY, None, drop_coordinates)
                 self.teams[team]['keys'] -= 1
                 # self.broadcast_teams_change()
@@ -282,8 +281,6 @@ class ScapiServer():
 
     def use_on_key(self, team, coordinates):
         self.teams[team]['keys'] += 1
-        # self.board[coordinates[0]][coordinates[1]] = '.'
-        # self.update_nonstatic_element_on_board('.', None, coordinates)
         self.update_nonstatic_element_on_board(None, coordinates, None)
 
     def set_team_score(self, team, is_portal=False):
