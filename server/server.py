@@ -5,7 +5,6 @@ Simple Redis server using a Pub/sub comunication, and JSON for the messages seri
 import csv
 import datetime
 from functools import partial
-from hashlib import new
 import json
 import logging
 import os
