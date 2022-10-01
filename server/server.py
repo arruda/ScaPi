@@ -325,6 +325,10 @@ class ScapiServer():
             self.teams[team]['left_maze'] = True
             coordinates = self.teams[team]['coordinates']
             self.update_nonstatic_element_on_board(None, coordinates, None)
+<<<<<<< HEAD
+=======
+            # self.board[coordinates[0]][coordinates[1]] = '.'
+>>>>>>> f8642696a533a4bd8c7511065cf74f1580f14f88
             self.send_gameover_msg_to_team(team)
 
     def process_action_use(self, team):
