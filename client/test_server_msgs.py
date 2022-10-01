@@ -7,7 +7,7 @@ import redis
 from conf import REDIS_ADDRESS, REDIS_PORT, USER, TEAM_NAME, GREEN
 
 
-def send_message_reg(redis_db, msg_data):
+def send_message_redis(redis_db, msg_data):
     json_msg = json.dumps(msg_data)
     redis_db.publish(f'{TEAM_NAME}/{USER}', json_msg)
 
@@ -33,18 +33,31 @@ def send_game_starting_msg(redis_db):
         'board': BOARD_EXAMPLE,
         'actions': ['right', 'left', 'up', 'down', 'use'],
         'teams':{
-            1: {
-                'color': GREEN,
-                'name': TEAM_NAME
+            TEAM_NAME: {
+                'id': 1,
+                'name': TEAM_NAME,
+                # ...
             },
-            2:{
-                'color': GREEN,
-                'name': 'OtherTeam'
+            'OtherTeam':{
+                'id': 2,
+                'name': 'OtherTeam',
+                # ...
             }
         }
     }
 
-    send_message_reg(redis_db, event_msg)
+    send_message_redis(redis_db, event_msg)
+
+
+def send_board_change_msg(redis_db):
+    event_msg = {
+        'type': 'board_change',
+        'change': {
+            'a_coord_val': [4, 8, '.'],
+            'b_coord_val': [3, 8, '1'],
+        }
+    }
+    send_message_redis(redis_db, event_msg)
 
 
 
