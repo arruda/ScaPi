@@ -131,16 +131,41 @@ class ScapiServer():
                 user = team_users[user_index]
                 team_data['users'][user].append(action)
 
-    def notify_team_users_actions(self):
+    def create_game_starting_event_msg(self, user_actions):
+        return {
+            'type': 'game_starting',
+            'board': self.board,
+            'teams': self.teams,
+            'actions': user_actions
+        }
+
+    def notify_team_users_of_game_setup(self):
+        for team_id, dict_tuple in enumerate(self.teams.items(), 1):
+            team, team_data = dict_tuple
+            for user, actions in team_data['users'].items():
+                user_topic = f'{team}/{user}'
+
+                json_msg = json.dumps(self.create_game_starting_event_msg(actions))
+                self.redis_db.publish(user_topic, json_msg)
+
+    def broadcast_msg(self, json_msg):
         for team, team_data in self.teams.items():
             for user, actions in team_data['users'].items():
                 user_topic = f'{team}/{user}'
-                json_msg = json.dumps(actions)
                 self.redis_db.publish(user_topic, json_msg)
-                time.sleep(0.1)
-                self.redis_db.publish(user_topic, json_msg)
-                time.sleep(0.1)
-                self.redis_db.publish(user_topic, json_msg)
+
+
+    def broadcast_board_two_coords_change(self, a_coord_val, b_coord_val):
+        event_msg = {
+            'type': 'board_change',
+            'change': {
+                'a_coord_val': a_coord_val,
+                'b_coord_val': b_coord_val,
+            }
+        }
+        self.logger.info(f'will send this msgs: {event_msg}')
+        self.broadcast_msg(json.dumps(event_msg))
+
 
     def get_admin_msg_data_if_secure(self, json_msg):
         msg_data = json.loads(json_msg)
@@ -180,13 +205,27 @@ class ScapiServer():
             finally:
                 self.show_team_users()
         self.randomize_user_actions()
-        self.notify_team_users_actions()
+        self.notify_team_users_of_game_setup()
         pubsub.unsubscribe('scapi-setup')
         pubsub.unsubscribe('scapi-admin')
 
     def update_team_on_board(self, team_id, old_coord, new_coord):
-        self.board[old_coord[0]][old_coord[1]] = '.'
-        self.board[new_coord[0]][new_coord[1]] = str(team_id)
+        # self.board[old_coord[0]][old_coord[1]] = '.'
+        # self.board[new_coord[0]][new_coord[1]] = str(team_id)
+        self.update_nonstatic_element_on_board(team_id, old_coord, new_coord)
+
+    def update_nonstatic_element_on_board(self, element_id, old_coord, new_coord):
+        old_coord_val = None
+        new_coord_val = None
+        if old_coord is not None:
+            ground_element_id = '.'
+            old_coord_val = [old_coord[0], old_coord[1], ground_element_id]
+            self.board[old_coord[0]][old_coord[1]] = ground_element_id
+        if element_id is not None and new_coord is not None:
+            new_coord_val = [new_coord[0], new_coord[1], element_id]
+            self.board[new_coord[0]][new_coord[1]] = str(element_id)
+
+        self.broadcast_board_two_coords_change(old_coord_val, new_coord_val)
 
     def get_open_option_if_valid_use_coordinate(self, coordinates):
         try:
@@ -235,13 +274,17 @@ class ScapiServer():
         for choice in choices_rand_sorted:
             drop_coordinates = drop_choices[choice]
             if self.is_valid_board_move_coordinate(drop_coordinates):
-                self.board[drop_coordinates[0]][drop_coordinates[1]] = self.KEY
+                # self.board[drop_coordinates[0]][drop_coordinates[1]] = self.KEY
+                self.update_nonstatic_element_on_board(self.KEY, None, drop_coordinates)
                 self.teams[team]['keys'] -= 1
+                # self.broadcast_teams_change()
                 break
 
     def use_on_key(self, team, coordinates):
         self.teams[team]['keys'] += 1
-        self.board[coordinates[0]][coordinates[1]] = '.'
+        # self.board[coordinates[0]][coordinates[1]] = '.'
+        # self.update_nonstatic_element_on_board('.', None, coordinates)
+        self.update_nonstatic_element_on_board(None, coordinates, None)
 
     def set_team_score(self, team, is_portal=False):
         max_scoring_teams = 2
@@ -257,10 +300,13 @@ class ScapiServer():
         self.teams[team]['score'] = score
 
     def send_gameover_msg_to_team(self, team):
+        json_msg = json.dumps({
+            'type': 'game-over',
+            'game-over': True
+        })
         team_data = self.teams[team]
         for user in team_data['users'].keys():
             user_topic = f'{team}/{user}'
-            json_msg = json.dumps({'game-over': True})
             self.redis_db.publish(user_topic, json_msg)
 
     def exit_maze(self, team, use_option):
@@ -277,7 +323,7 @@ class ScapiServer():
             self.teams[team]['exit_time'] = datetime.datetime.now()
             self.teams[team]['left_maze'] = True
             coordinates = self.teams[team]['coordinates']
-            self.board[coordinates[0]][coordinates[1]] = '.'
+            self.update_nonstatic_element_on_board(None, coordinates, None)
             self.send_gameover_msg_to_team(team)
 
     def process_action_use(self, team):
