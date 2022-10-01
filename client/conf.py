@@ -1,3 +1,4 @@
+from ast import Pass
 import os
 
 from decouple import config
@@ -11,6 +12,22 @@ REDIS_PORT = config('REDIS_PORT', default='6379')
 LOGGING_LEVEL = config('LOGGING_LEVEL', default='DEBUG')
 TEAM_NAME = config('TEAM_NAME')
 USER = config('USER')
+
+KEY_UP = config('KEY_UP', 'Up:111')
+KEY_DOWN = config('KEY_DOWN', 'Down:116')
+KEY_LEFT = config('KEY_LEFT', 'Left:113')
+KEY_RIGHT = config('KEY_RIGHT', 'Right:114')
+KEY_USE = config('KEY_USE', 'e')
+KEY_DROP = config('KEY_DROP', 'q')
+
+KEY_ACTIONS_MAP = {
+    KEY_UP: 'up',
+    KEY_DOWN: 'down',
+    KEY_LEFT: 'left',
+    KEY_RIGHT: 'right',
+    KEY_USE: 'use',
+    KEY_DROP: 'drop',
+}
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -28,16 +45,16 @@ DEFAULT_WINDOW_SIZE = (WIDTH, HEIGHT)
 TILE_SIZE = 32
 
 SPRITE_DICT = {
-    '|': 'img_wall.png',
-    '.': 'img_path.png',
-    '@': 'img_unlocked_door.png',
-    '#': 'img_locked_door.png',
-    'K': 'img_key.png',
-    '1': 'img_01.png',
-    '2': 'img_02.png',
-    '3': 'img_03.png',
-    '4': 'img_01.png',
-    '5': 'img_01.png'
+    '|': os.path.join(IMG_FOLDER, 'img_wall.png'),
+    '.': os.path.join(IMG_FOLDER, 'img_path.png'),
+    '@': os.path.join(IMG_FOLDER, 'img_unlocked_door.png'),
+    '#': os.path.join(IMG_FOLDER, 'img_locked_door.png'),
+    'K': os.path.join(IMG_FOLDER, 'img_key.png'),
+    '1': os.path.join(IMG_FOLDER, 'img_01.png'),
+    '2': os.path.join(IMG_FOLDER, 'img_02.png'),
+    '3': os.path.join(IMG_FOLDER, 'img_03.png'),
+    '4': os.path.join(IMG_FOLDER, 'img_01.png'),
+    '5': os.path.join(IMG_FOLDER, 'img_01.png'),
 }
 
 FONT_HEADER = ("Arial", 30)

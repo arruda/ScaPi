@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import time
 import json
 import redis
 
@@ -51,7 +52,7 @@ def send_board_change_msg(redis_db):
         'type': 'board_change',
         'change': {
             'a_coord_val': [4, 8, '.'],
-            'b_coord_val': [3, 8, '1'],
+            'b_coord_val': [3, 8, '3'],
         }
     }
     send_message_redis(redis_db, event_msg)
@@ -60,3 +61,5 @@ def send_board_change_msg(redis_db):
 if __name__ == '__main__':
     redis_db = redis.Redis(host=REDIS_ADDRESS, port=REDIS_PORT)
     send_game_starting_msg(redis_db)
+    time.sleep(5)
+    send_board_change_msg(redis_db)
