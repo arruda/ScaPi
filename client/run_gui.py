@@ -12,7 +12,6 @@ import PySimpleGUI as sg
 
 from conf import *
 
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER_PROJECT_ROOT = os.path.join(PROJECT_ROOT, 'server')
 BOARDS_DIR = os.path.join(SERVER_PROJECT_ROOT, 'boards')
@@ -44,7 +43,6 @@ class GameGUI:
         return logzero.setup_logger(
             name=self.__class__.__name__, level=logging.getLevelName(self.logging_level), formatter=formatter)
 
-
     def connect_to_server(self, redis_address, redis_port):
         print(f'connect_to_server: {redis_address}, {redis_port}')
         self.redis_db = redis.Redis(host=redis_address, port=redis_port)
@@ -69,17 +67,18 @@ class GameGUI:
         self.redis_db.publish('scapi-setup', json_msg)
 
     def create_window(self, sub_title, layout, size=DEFAULT_WINDOW_SIZE, return_keyboard_events=False):
-        self.window = sg.Window(f'{self.title} - {sub_title}', layout, size=size, return_keyboard_events=return_keyboard_events)
+        self.window = sg.Window(f'{self.title} - {sub_title}', layout, size=size,
+                                return_keyboard_events=return_keyboard_events)
         return self.window
 
     def create_main_menu(self):
-        layout = [[sg.Text('Main Menu')],
+        layout = [[sg.Text('Main Menu', font=FONT_HEADER)],
                   [sg.Text('Available Options:')],
                   [sg.Button('Join Game')]]
         self.create_window('Main Menu', layout)
 
     def create_register_player_window(self):
-        layout = [[sg.Text('Join Game')],
+        layout = [[sg.Text('Join Game', font=FONT_HEADER)],
                   [sg.Text('Server address:'), sg.InputText(default_text=REDIS_ADDRESS)],
                   [sg.Text('Server port:'), sg.InputText(default_text=REDIS_PORT)],
                   [sg.Text('Team Name:'), sg.InputText(default_text=TEAM_NAME)],
@@ -94,7 +93,7 @@ class GameGUI:
 
         print('finished setup pubsub will create window')
 
-        layout = [[sg.Text('Waiting for server to start game...')]]
+        layout = [[sg.Text('Waiting for server to start game...', font=FONT_HEADER)]]
         self.create_window('Joining Game...', layout)
         self.send_registration_msg()
 
@@ -113,20 +112,20 @@ class GameGUI:
 
     def create_game_window(self, board, teams, actions):
         board_layout = self.create_board_layout(board)
-
-        board_frame = sg.Frame(
-            layout=board_layout,
-            title='Board', title_color='blue', relief=sg.RELIEF_SUNKEN,
-            background_color='white',
-        )
+        title_layout = [[sg.Text('ScaPi Game - Level 1', font=FONT_HEADER)]]
+        time_layout = [[sg.Text('Time Left: 150s', font=FONT_HEADER)]]
+        team_layout = [[sg.Text('Team Information:', font=FONT_HEADER)]]
+        actions_layout = [[sg.Text('Your Actions:', font=FONT_HEADER)]]
 
         layout = [
-            [sg.Text('Game has started')],
-            [board_frame],
+            [sg.Column(title_layout, expand_x=True, element_justification='left'),
+             sg.Column(time_layout, expand_x=True, element_justification='right')],
+            [sg.Column(board_layout, expand_x=True),
+             sg.Column(team_layout, expand_x=True, element_justification='right', vertical_alignment='top')],
+            [sg.Column(actions_layout, expand_x=True)]
 
         ]
         self.create_window('Game Running', layout, return_keyboard_events=True)
-
 
     def send_action_msg(self, action):
         msg_data = {
@@ -156,7 +155,6 @@ class GameGUI:
             if action in self.user_actions:
                 self.process_user_action(action)
 
-
     def run_client_event_loop(self):
         event, values = self.window.read(timeout=10)
         if event != sg.TIMEOUT_KEY:
@@ -164,7 +162,6 @@ class GameGUI:
             if event in (sg.WIN_CLOSED, 'Cancel'):
                 self.game_is_running = False
             self.process_client_event(event, values)
-
 
     def process_game_starting_event(self, event):
         board = event.get('board')
