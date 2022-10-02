@@ -52,7 +52,7 @@ def send_board_change_msg(redis_db):
         'type': 'board_change',
         'change': {
             'a_coord_val': [4, 8, '.'],
-            'b_coord_val': [3, 8, '3'],
+            'b_coord_val': [3, 8, '5'],
         }
     }
     send_message_redis(redis_db, event_msg)
@@ -61,5 +61,5 @@ def send_board_change_msg(redis_db):
 if __name__ == '__main__':
     redis_db = redis.Redis(host=REDIS_ADDRESS, port=REDIS_PORT)
     send_game_starting_msg(redis_db)
-    time.sleep(5)
-    send_board_change_msg(redis_db)
+    # time.sleep(5)
+    # send_board_change_msg(redis_db)
