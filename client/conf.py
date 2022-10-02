@@ -43,9 +43,9 @@ HEIGHT = 768
 DEFAULT_WINDOW_SIZE = (WIDTH, HEIGHT)
 
 TILE_SIZE = 32
-
 SPRITE_DICT = {
     '|': os.path.join(IMG_FOLDER, 'img_wall.png'),
+    '!': os.path.join(IMG_FOLDER, 'img_wall.png'),
     '.': os.path.join(IMG_FOLDER, 'img_path.png'),
     '@': os.path.join(IMG_FOLDER, 'img_unlocked_door.png'),
     '#': os.path.join(IMG_FOLDER, 'img_locked_door.png'),
