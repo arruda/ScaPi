@@ -93,7 +93,7 @@ class GameGUI:
 
         print('finished setup pubsub will create window')
 
-        layout = [[sg.Text('Waiting for server to start game...')]]
+        layout = [[sg.Text('Waiting for server to start game...', font=FONT_HEADER)]]
         self.create_window('Joining Game...', layout)
         self.send_registration_msg()
 
@@ -112,10 +112,17 @@ class GameGUI:
 
     def create_game_window(self, board, teams, actions):
         board_layout = self.create_board_layout(board)
+        title_layout = [[sg.Text('ScaPi Game - Level 1', font=FONT_HEADER)]]
+        time_layout = [[sg.Text('Time Left: 150s', font=FONT_HEADER)]]
+        team_layout = [[sg.Text('Team Information:', font=FONT_HEADER)]]
+        actions_layout = [[sg.Text('Your Actions:', font=FONT_HEADER)]]
 
         layout = [
-            [sg.Text('ScaPi Game - Level 1', font=FONT_HEADER)],
-            [board_layout],
+            [sg.Column(title_layout, expand_x=True, element_justification='left'),
+             sg.Column(time_layout, expand_x=True, element_justification='right')],
+            [sg.Column(board_layout, expand_x=True),
+             sg.Column(team_layout, expand_x=True, element_justification='right', vertical_alignment='top')],
+            [sg.Column(actions_layout, expand_x=True)]
 
         ]
         self.create_window('Game Running', layout, return_keyboard_events=True)

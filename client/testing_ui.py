@@ -39,8 +39,8 @@ class ClientUIMaker:
         ]
         self.create_window('Testing Show images', layout)
 
-    def create_main_screen(self):
-        layout = [[sg.Text('ScaPi Game', font=FONT_HEADER)]]
+    def create_board_layout(self):
+        layout = []
 
         for i in range(self.board_height):
             current_row = []
@@ -51,6 +51,23 @@ class ClientUIMaker:
                 img = sg.Image(img_path, key=(i, j), pad=0)
                 current_row.append(img)
             layout.append(current_row)
+        return layout
+
+    def create_main_screen(self):
+        board_layout = self.create_board_layout()
+        title_layout = [[sg.Text('ScaPi Game - Level 1', font=FONT_HEADER)]]
+        time_layout = [[sg.Text('Time Left: 150s', font=FONT_HEADER)]]
+        team_layout = [[sg.Text('Team Information:', font=FONT_HEADER)]]
+        actions_layout = [[sg.Text('Your Actions:', font=FONT_HEADER)]]
+
+        layout = [
+            [sg.Column(title_layout, expand_x=True, element_justification='left'),
+             sg.Column(time_layout, expand_x=True, element_justification='right')],
+            [sg.Column(board_layout, expand_x=True),
+             sg.Column(team_layout, expand_x=True, element_justification='right', vertical_alignment='top')],
+            [sg.Column(actions_layout, expand_x=True)]
+
+        ]
         self.create_window('Playing Board', layout)
 
     def process_event(self, event, values):
@@ -109,16 +126,16 @@ class ClientUIMaker:
 
 if __name__ == '__main__':
     board_example = [
-        ['|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '@', '|'],
-        ['|', '.', '.', '.', '.', '.', '|', '.', '.', '.', '.', '.', '|'],
-        ['|', '.', '.', '.', '|', '.', '.', '.', '|', '.', '|', '.', '|'],
-        ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
-        ['|', '.', '.', '.', '1', '2', '3', '4', '5', '.', '.', '.', '|'],
-        ['|', '|', '.', '.', '.', '.', '|', '.', '.', '.', '.', '|', '|'],
-        ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
-        ['|', '.', '|', 'K', '.', '.', '|', '.', '.', '.', '.', '.', '|'],
-        ['#', '.', '.', '.', '|', '.', '.', '.', '.', '.', '.', '.', '|'],
-        ['|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|']
+        ['|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '@', '|', '|', '|', '|'],
+        ['|', 'K', '.', '.', '.', '.', '|', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '.', '.', '.', '|', '.', '.', '.', '|', '.', '|', '.', '.', '.', '.', '|'],
+        ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '.', '.', '.', '1', '2', '3', '4', '5', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '|', '.', '.', '.', '.', '|', '.', '.', '.', '.', '|', '.', '.', '.', '|'],
+        ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '.', '|', 'K', '.', '.', '|', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['#', '.', '.', '|', '|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+        ['|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '|', '#', '|']
     ]
 
     client_ui = ClientUIMaker(board_example)
