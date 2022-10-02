@@ -53,8 +53,8 @@ SPRITE_DICT = {
     '1': os.path.join(IMG_FOLDER, 'img_01.png'),
     '2': os.path.join(IMG_FOLDER, 'img_02.png'),
     '3': os.path.join(IMG_FOLDER, 'img_03.png'),
-    '4': os.path.join(IMG_FOLDER, 'img_01.png'),
-    '5': os.path.join(IMG_FOLDER, 'img_01.png'),
+    '4': os.path.join(IMG_FOLDER, 'img_04.png'),
+    '5': os.path.join(IMG_FOLDER, 'img_05.png'),
 }
 
 FONT_HEADER = ("Arial", 30)
